@@ -44,7 +44,7 @@ function sendEmail(context, options, callback) {
     )
   } catch (e) {
     context.log(e)
-    sendResult = Promse.reject(e)
+    sendResult = Promise.reject(e)
   }
   if (!callback) return sendResult
   sendResult
@@ -60,22 +60,22 @@ function encodeBody(options) {
 const requiredEmailParams = ['Source', 'Destination', 'Message']
 function validateParams(params) {
   requiredEmailParams.forEach(prop =>
-    assert(options[prop], `The "${prop}" property is required`)
+    assert(params[prop], `The "${prop}" property is required`)
   )
-  assert(options.Message.Body, 'The "Message.Body" property is required')
-  assert(options.Message.Subject, 'The "Message.Subject" property is required')
+  assert(params.Message.Body, 'The "Message.Body" property is required')
+  assert(params.Message.Subject, 'The "Message.Subject" property is required')
   assert(
-    options.Message.Subject.Data,
+    params.Message.Subject.Data,
     'The "Message.Subject.Data" property is required'
   )
-  if ('Html' in options.Message.Body) {
+  if ('Html' in params.Message.Body) {
     assert(
-      options.Message.Body.Html.Data,
+      params.Message.Body.Html.Data,
       'The "Message.Body.Html.Data" property is required when using Html'
     )
-  } else if ('Text' in options.Message.Body) {
+  } else if ('Text' in params.Message.Body) {
     assert(
-      options.Message.Body.Text.Data,
+      params.Message.Body.Text.Data,
       'The "Message.Body.Text.Data" property is required when using Text'
     )
   } else {
