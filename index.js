@@ -9,8 +9,8 @@ module.exports = makeClient
 
 function noOp() {}
 function makeClient(options) {
-  let conf = Object.assign({}, options)
-  assert(conf.region, 'Region is a required configuration for SES clients')
+  let context = Object.assign({}, options)
+  assert(context.region, 'Region is a required option for SES clients')
 
   // Configure optional logger
   if ('logger' in context) {
