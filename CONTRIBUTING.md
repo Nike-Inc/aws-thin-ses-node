@@ -20,7 +20,7 @@ There are a few guidelines that we need contributors to follow so that we are ab
   * You may be asked to squash unnecessary commits down to logical units.
 * Check for unnecessary whitespace with `git diff --check` before committing.
 * Write meaningful, descriptive commit messages.
-* Please follow existing code conventions when working on a file. (This repo uses [Prettier](https://github.com/prettier/prettier))
+* Please follow existing code conventions when working on a file.
 
 ## Submitting Changes
 

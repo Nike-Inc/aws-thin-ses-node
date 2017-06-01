@@ -3,18 +3,19 @@
 const request = require('request-micro')
 const aws4 = require('aws4')
 const assert = require('assert')
-const encoder = require('form-urlencoded')
+const encoder = require('aws-form-urlencoded')
 
 module.exports = makeClient
 
-function noOp() {}
-function makeClient(options) {
+function noOp () {}
+
+function makeClient (options) {
   let context = Object.assign({}, options)
   assert(context.region, 'Region is a required option for SES clients')
 
   // Configure optional logger
   if ('logger' in context) {
-    context.log = context.logger.log
+    context.log = context.logger.log.bind(null, 'ses thin client')
     delete context.logger
   } else {
     context.log = noOp
@@ -25,10 +26,12 @@ function makeClient(options) {
   }
 }
 
-function sendEmail(context, options, callback) {
+function sendEmail (context, options, callback) {
   let sendResult
+
   // encodeBody and aws4.sign can both throw before the promise starts
   try {
+    context.log('starting send', options)
     sendResult = request(
       aws4.sign({
         service: 'email',
@@ -39,26 +42,38 @@ function sendEmail(context, options, callback) {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: encodeBody(options)
+        body: encodeBody(context, options)
       })
     )
   } catch (e) {
     context.log(e)
     sendResult = Promise.reject(e)
   }
-  if (!callback) return sendResult
+  if (!callback) {
+    return sendResult.then(result => {
+      context.log('finished', result.statusCode, result.statusMessage)
+      context.log('data', result.data.toString())
+      return result
+    })
+  }
   sendResult
     .then(result => callback(null, result))
     .catch(error => callback(error))
 }
 
-function encodeBody(options) {
+function encodeBody (context, options) {
+  context.log('validating params', options)
   validateParams(options)
-  return encoder(Object.assign({}, options, { Action: 'SendEmail' }))
+  context.log('params validated')
+
+  let body = encoder(Object.assign({}, options, { Action: 'SendEmail' }))
+  context.log('body encoded', body)
+  return body
 }
 
 const requiredEmailParams = ['Source', 'Destination', 'Message']
-function validateParams(params) {
+
+function validateParams (params) {
   requiredEmailParams.forEach(prop =>
     assert(params[prop], `The "${prop}" property is required`)
   )

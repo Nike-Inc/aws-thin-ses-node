@@ -1,5 +1,5 @@
 [![NPM version](https://img.shields.io/npm/v/aws-thin-ses.svg)](https://www.npmjs.com/package/aws-thin-ses)
-[![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 # What is this for?
 
