@@ -44,7 +44,12 @@ function sendEmail (context, options, callback) {
         },
         body: encodeBody(context, options)
       })
-    )
+    ).then(response => {
+      if (response.statusCode >= 400) {
+        return Promise.reject(new Error('Amazon SES service returned status code: ' + response.statusCode))
+      }
+      return response
+    })
   } catch (e) {
     context.log(e)
     sendResult = Promise.reject(e)
@@ -75,14 +80,11 @@ const requiredEmailParams = ['Source', 'Destination', 'Message']
 
 function validateParams (params) {
   requiredEmailParams.forEach(prop =>
-    assert(params[prop], `The "${prop}" property is required`)
-  )
+  assert(params[prop], `The "${prop}" property is required`)
+)
   assert(params.Message.Body, 'The "Message.Body" property is required')
   assert(params.Message.Subject, 'The "Message.Subject" property is required')
-  assert(
-    params.Message.Subject.Data,
-    'The "Message.Subject.Data" property is required'
-  )
+  assert(params.Message.Subject.Data, 'The "Message.Subject.Data" property is required')
   if ('Html' in params.Message.Body) {
     assert(
       params.Message.Body.Html.Data,

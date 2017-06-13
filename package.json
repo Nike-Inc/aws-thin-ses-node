@@ -1,6 +1,6 @@
 {
   "name": "aws-thin-ses",
-  "version": "0.1.0",
+  "version": "0.9.0",
   "description": "aws thin simple email service client",
   "main": "index.js",
   "repository": "git@github.nike.com:ngp/aws-thin-ses.git",
@@ -29,6 +29,7 @@
     "babel-eslint": "^7.2.3",
     "blue-tape": "^1.0.0",
     "chokidar-cli": "^1.2.0",
+    "nock": "^9.0.13",
     "snazzy": "^7.0.0",
     "standard": "^10.0.2",
     "tap-spec": "^4.1.1"
