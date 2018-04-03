@@ -46,6 +46,7 @@ function sendEmail (context, options, callback) {
       })
     ).then(response => {
       if (response.statusCode >= 400) {
+        console.log(response.data)
         return Promise.reject(new Error('Amazon SES service returned status code: ' + response.statusCode))
       }
       return response
@@ -68,10 +69,16 @@ function sendEmail (context, options, callback) {
 
 function encodeBody (context, options) {
   context.log('validating params', options)
-  validateParams(options)
+  if (options.Template) {
+    validateTemplateParams(options)
+  } else {
+    validateParams(options)
+  }
   context.log('params validated')
 
-  let body = encoder(Object.assign({}, options, { Action: 'SendEmail' }))
+  let body = encoder(Object.assign({}, options, { 
+    Action: options.Template ? 'SendTemplatedEmail' : 'SendEmail' 
+  }))
   context.log('body encoded', body)
   return body
 }
@@ -79,9 +86,7 @@ function encodeBody (context, options) {
 const requiredEmailParams = ['Source', 'Destination', 'Message']
 
 function validateParams (params) {
-  requiredEmailParams.forEach(prop =>
-  assert(params[prop], `The "${prop}" property is required`)
-)
+  requiredEmailParams.forEach(prop => assert(params[prop], `The "${prop}" property is required`))
   assert(params.Message.Body, 'The "Message.Body" property is required')
   assert(params.Message.Subject, 'The "Message.Subject" property is required')
   assert(params.Message.Subject.Data, 'The "Message.Subject.Data" property is required')
@@ -98,4 +103,9 @@ function validateParams (params) {
   } else {
     throw new Error('One of "Html", "Text" is required on Message.Body')
   }
+}
+
+const requireTemplateParams = ['Source', 'Destination', 'Template', 'TemplateData']
+function validateTemplateParams (params) {
+  requireTemplateParams.forEach(prop => assert(params[prop], `The "${prop}" property is required`))
 }

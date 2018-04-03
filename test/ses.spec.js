@@ -88,6 +88,23 @@ test('ses should require Data Property on Message.Body.Html or Message.Body.Text
   })
 })
 
+test('ses should validate the template params when sending Template as an option', t => {
+  t.plan(3)
+  const client = ses({ region: 'us-west-2' })
+
+  client.sendEmail({ Template: 'test' }, function (err) {
+    t.equal(err.message, 'The "Source" property is required')
+  })
+
+  client.sendEmail({ Source: {}, Template: 'test' }, function (err) {
+    t.equal(err.message, 'The "Destination" property is required')
+  })
+
+  client.sendEmail({ Source: {}, Destination: {}, Template: 'test' }, function (err) {
+    t.equal(err.message, 'The "TemplateData" property is required')
+  })
+})
+
 test('ses should fail if http request to aws fails', t => {
   t.plan(1)
   const client = ses({ region: 'us-west-2' })
