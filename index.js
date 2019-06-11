@@ -90,12 +90,12 @@ function sendEmail (context, options, callback) {
 }
 
 function encodeBody (context, options) {
-  context.logger.info('SES: validating params', options)
+  context.logger.debug('SES: validating params', options)
   validateParams(options)
-  context.logger.info('SES: params validated')
+  context.logger.debug('SES: params validated')
 
   let body = encoder(Object.assign({}, options, { Action: 'SendEmail' }))
-  context.logger.info('SES: body encoded', body)
+  context.logger.debug('SES: body encoded', body)
   return body
 }
 
