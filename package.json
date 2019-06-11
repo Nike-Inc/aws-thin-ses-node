@@ -1,6 +1,6 @@
 {
   "name": "aws-thin-ses",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "aws thin simple email service client",
   "main": "index.js",
   "repository": "git@github.nike.com:ngp/aws-thin-ses.git",
