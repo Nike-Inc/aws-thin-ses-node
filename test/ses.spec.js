@@ -16,19 +16,15 @@ test('ses should throw if a region is not passed to constructor', t => {
   t.end()
 })
 
-test('ses should use the logger passed into the constructor', t => {
-  t.plan(3) // Console gets called three times before error
+test('ses should use the logger passed into the constructor', async t => {
+  t.plan(2) // Console gets called three times before error
   let logger = {
-    log: function (message) {
+    info: function (message) {
       t.ok(typeof message === 'string')
     }
   }
-  const client = ses({ region: 'us-west-2', logger: logger })
-  try {
-    client.sendEmail({})
-  } catch (e) {
-    t.end()
-  }
+  const client = ses({ region: 'us-west-2', logger })
+  await client.sendEmail({}).catch(e => {})
 })
 
 test('ses should require Source, Destination, and Message when sending e-mail', t => {

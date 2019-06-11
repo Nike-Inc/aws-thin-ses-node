@@ -7,19 +7,29 @@ const encoder = require('aws-form-urlencoded')
 
 module.exports = makeClient
 
-function noOp () {}
+function noop () {}
+function functionElseNoop (func) {
+  if (func && typeof func === 'function') {
+    return func
+  }
+  return noop
+}
+function logWrapper (loggerArg) {
+  const logger = loggerArg || {}
+  return {
+    error: functionElseNoop(logger.error),
+    warn: functionElseNoop(logger.warn),
+    info: functionElseNoop(logger.info),
+    debug: functionElseNoop(logger.debug)
+  }
+}
 
 function makeClient (options) {
   let context = Object.assign({}, options)
   assert(context.region, 'Region is a required option for SES clients')
 
   // Configure optional logger
-  if ('logger' in context) {
-    context.log = context.logger.log.bind(null, 'ses thin client')
-    delete context.logger
-  } else {
-    context.log = noOp
-  }
+  context.logger = logWrapper(context.logger)
 
   return {
     sendEmail: sendEmail.bind(null, context)
@@ -31,7 +41,7 @@ function sendEmail (context, options, callback) {
 
   // encodeBody and aws4.sign can both throw before the promise starts
   try {
-    context.log('starting send', options)
+    context.logger.info('SES: starting send', options)
     sendResult = request(
       aws4.sign({
         service: 'email',
@@ -46,18 +56,31 @@ function sendEmail (context, options, callback) {
       })
     ).then(response => {
       if (response.statusCode >= 400) {
-        return Promise.reject(new Error('Amazon SES service returned status code: ' + response.statusCode))
+        context.logger.error(
+          'SES: ',
+          response.statusCode,
+          response.data && response.data.toString()
+        )
+        return Promise.reject(
+          new Error(
+            'Amazon SES service returned status code: ' + response.statusCode
+          )
+        )
       }
       return response
     })
   } catch (e) {
-    context.log(e)
+    context.logger.error('SES: ', e)
     sendResult = Promise.reject(e)
   }
   if (!callback) {
     return sendResult.then(result => {
-      context.log('finished', result.statusCode, result.statusMessage)
-      context.log('data', result.data.toString())
+      context.logger.info(
+        'SES: finished',
+        result.statusCode,
+        result.statusMessage
+      )
+      context.logger.info('SES: data', result.data.toString())
       return result
     })
   }
@@ -67,12 +90,12 @@ function sendEmail (context, options, callback) {
 }
 
 function encodeBody (context, options) {
-  context.log('validating params', options)
+  context.logger.info('SES: validating params', options)
   validateParams(options)
-  context.log('params validated')
+  context.logger.info('SES: params validated')
 
   let body = encoder(Object.assign({}, options, { Action: 'SendEmail' }))
-  context.log('body encoded', body)
+  context.logger.info('SES: body encoded', body)
   return body
 }
 
@@ -80,11 +103,14 @@ const requiredEmailParams = ['Source', 'Destination', 'Message']
 
 function validateParams (params) {
   requiredEmailParams.forEach(prop =>
-  assert(params[prop], `The "${prop}" property is required`)
-)
+    assert(params[prop], `The "${prop}" property is required`)
+  )
   assert(params.Message.Body, 'The "Message.Body" property is required')
   assert(params.Message.Subject, 'The "Message.Subject" property is required')
-  assert(params.Message.Subject.Data, 'The "Message.Subject.Data" property is required')
+  assert(
+    params.Message.Subject.Data,
+    'The "Message.Subject.Data" property is required'
+  )
   if ('Html' in params.Message.Body) {
     assert(
       params.Message.Body.Html.Data,
